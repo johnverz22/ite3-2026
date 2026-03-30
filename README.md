@@ -1,38 +1,46 @@
-# Phase 1: The Foundation (Front Controller & Autoloader)
+# Phase 2: The Router & Controller Dispatcher
 
-This phase establishes the **Single Entry Point** for our application. Instead of many separate PHP files, every request is handled by one central script.
+In this phase, we move away from simple `if/else` statements in our `index.php`. We are building a **Router Engine** that acts as a map for the entire application.
 
-## 1. The Traffic Cop (`.htaccess`)
-The `.htaccess` file is responsible for **URL Rewriting**. It ensures that "Clean URLs" (like `/home` or `/about`) are directed to our PHP code even if those folders don't exist on the server.
+## 1. What is a Router?
+The Router is a specialized class that stores a list of "Rules." Each rule says: *"If the user visits this URL using this Method (GET/POST), then execute this specific Controller and Method."*
 
-* **Rule 1:** Enables the rewrite engine.
-* **Rules 2 & 3:** Checks if you are trying to access a real file (like `style.css`) or an image. If so, it lets you view them.
-* **Rule 4:** If the request isn't for a real file, it sends the entire URL path to `public/index.php`.
+## 2. Key Components Added
 
-## 2. The Gatekeeper (`public/index.php`)
-This file "boots up" the application. It contains two critical pieces of logic:
+### A. The Router Class (`app/Core/Router.php`)
+This class contains two main parts:
+* **The Map (`$routes`):** An associative array that stores our defined paths.
+* **The Resolver:** This is the logic that "dispatches" the request. It takes a string like `'PostController@index'`, splits it at the `@` symbol, and uses PHP's **Reflection** capabilities (instantiating a class from a string) to run the code.
 
-### A. The Manual Autoloader
-Instead of using `require` for every new class, we use `spl_autoload_register`.
-* It looks for classes starting with the **`App\`** namespace.
-* It automatically converts that namespace into a folder path (e.g., `App\Controllers\PostController` becomes `app/Controllers/PostController.php`).
-* This teaches you how PHP finds files before we move to **Composer** later in the semester.
+### B. Controller Actions
+Our `PostController` now has multiple "Actions" (Methods):
+* `index()`: Typically used to list all records.
+* `create()`: Typically used to show a form for a new record.
 
-### B. The Route Parser
-This section cleans the URL. It removes the subfolder name and query strings so that the application only sees the specific "route" the user wants (e.g., `home`, `login`, or `posts`).
-
-## 3. The Test Controller (`app/Controllers/PostController.php`)
-This is a simple class used to verify that your autoloader is working correctly.
-* **Namespace:** Must match the folder structure (`App\Controllers`).
-* **Success Message:** If you see "SUCCESS" in your browser, it means your manual autoloader correctly mapped the class name to the physical file on your disk.
+## 3. How the "Dispatch" Works
+When a user visits `localhost/ite3/post/create`, the following happens:
+1.  **`index.php`** captures the path: `post/create`.
+2.  **`Router`** looks at its map and finds: `post/create` → `PostController@create`.
+3.  **`Router`** automatically does: `new App\Controllers\PostController()->create();`.
 
 ---
 
-### Checklist for Students
-1. [ ] Create the `.htaccess` in your project root.
-2. [ ] Create `public/index.php` and paste the provided code.
-3. [ ] Create `app/Controllers/PostController.php`.
-4. [ ] Open `localhost/ite3/` in your browser.
-5. [ ] Verify you see the **Requested Route** and the **Success Message**.
+## 🛠️ Student Checklist: Verification
+To ensure your Router is working perfectly, try these three tests:
 
-**Next Step:** Once this foundation is solid, we will build a **Router Class** to handle these routes dynamically.
+1.  **The Home Test:**
+    * URL: `localhost/ite3/`
+    * Expected: "All Blog Posts" (from `PostController@index`)
+2.  **The Sub-page Test:**
+    * URL: `localhost/ite3/post/create`
+    * Expected: "Create New Post" (from `PostController@create`)
+3.  **The Error Test:**
+    * URL: `localhost/ite3/wrong-url`
+    * Expected: **404 - Page Not Found** and a `404` status code in the Network Tab of your browser.
+
+---
+
+## ⚠️ Common Errors to Watch For
+* **Explode Error:** If you forget the `@` symbol in your route definition (e.g., `'PostControllerindex'`), the `explode()` function will fail.
+* **Class Not Found:** Ensure your Controller class name in the `Router` matches the actual filename and namespace exactly.
+* **Method Not Found:** Check for typos in your method names (e.g., defining `public function index()` but calling `indexx`).

@@ -1,4 +1,4 @@
-# 🚀 Phase 1: The Foundation (Front Controller & Autoloader)
+# Phase 1: The Foundation (Front Controller & Autoloader)
 
 This phase establishes the **Single Entry Point** for our application. Instead of many separate PHP files, every request is handled by one central script.
 

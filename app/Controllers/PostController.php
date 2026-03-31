@@ -1,5 +1,6 @@
 <?php
 namespace App\Controllers;
+use App\Models\Post;
 
 class PostController {
     
@@ -23,8 +24,11 @@ class PostController {
     }
 
     public function index() {
+        $postModel = new Post();
+        $posts = $postModel->all();
+
         $this->render('home', [
-            'title' => 'Welcome to DevBlog'
+            'posts' => $posts
         ]);
     }
 

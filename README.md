@@ -1,43 +1,53 @@
-# 🖼️ Phase 2.3: The View Engine & Layout System
+# 🗄️ Phase 3: The Data Layer (Database & PDO)
 
-In this phase, we separate our **Logic** (PHP) from our **Presentation** (HTML). We are building a system that allows us to have a consistent "Look and Feel" across all pages without duplicating code.
+In this phase, we connect our application to **MySQL**. We are moving away from "Hardcoded Data" and into "Dynamic Content."
 
-## 1. The "Don't Repeat Yourself" (DRY) Principle
-Instead of writing the `<head>`, `<nav>`, and `<footer>` in every single file, we created a **Master Layout**. 
-* **Location:** `views/layouts/main.php`
-* **The Slot:** We use a special variable called `$content` to act as a placeholder for the unique parts of each page.
-
-## 2. Key Technology: Output Buffering
-By default, PHP sends HTML to the browser as soon as it sees it. To "inject" a page into a layout, we must temporarily stop this process.
-
-### The `ob_start()` / `ob_get_clean()` Cycle:
-1.  **`ob_start()`**: Opens a "temporary bucket" in the server's memory.
-2.  **`include 'view.php'`**: PHP executes the view, but instead of sending it to the user, the HTML falls into the "bucket."
-3.  **`ob_get_clean()`**: Grabs everything inside the bucket, saves it into the `$content` variable, and empties the bucket.
-4.  **Final Step**: We include the `main.php` layout, which simply echoes the `$content` variable.
+## 1. Why PDO (PHP Data Objects)?
+For your Capstone, you must use **PDO** instead of the older `mysqli` functions.
+* **Security:** PDO makes it easy to use **Prepared Statements**.
+* **Flexibility:** It can work with MySQL, PostgreSQL, or SQLite with minimal code changes.
+* **Error Handling:** It uses "Exceptions," which are easier to debug than standard PHP errors.
 
 
 
-## 3. The `render()` Helper Method
-We added a protected method to our **Base Controller** (or `PostController`) to handle this process automatically.
+## 2. The Singleton Connection (`app/Config/Database.php`)
+We implemented the **Singleton Pattern** for our database connection. 
+* **The Problem:** Opening a new connection to MySQL on every page is slow and uses too much server memory.
+* **The Solution:** The `getConnection()` method checks if a connection already exists. If it does, it reuses it. If not, it creates one. This ensures we only ever have **one** connection per request.
 
-**Functionality:**
-* **`extract($data)`**: This built-in PHP function takes an associative array and turns keys into variables. 
-  * *Example:* `['user' => 'Juan']` becomes `$user = 'Juan';` inside the view.
-* **Dynamic Loading**: It finds the correct file in the `views/` folder based on the name we provide.
+## 3. The Model-Base Inheritance
+We created a "Parent" Model (`app/Models/Model.php`) that handles the database connection automatically.
+* When you create a `Post` model, you don't need to write connection code. 
+* By using `class Post extends Model`, the `$this->db` variable is automatically available to you.
+
+## 4. Prepared Statements: Protecting the App
+**Never** put variables directly into your SQL strings.
+* **❌ BAD:** `"SELECT * FROM posts WHERE id = " . $id` (Vulnerable to hackers!)
+* **✅ GOOD:** `"SELECT * FROM posts WHERE id = ?"` (Uses a placeholder).
+
+The database "prepares" the query first, then "fills in" the data safely. This is the industry standard for preventing **SQL Injection**.
 
 ---
 
-## 🛠️ Student Checklist: Verification
-To ensure your View Engine is working:
+## 🛠️ Student Checklist: Database Setup
+Your code will not work until your local database is configured.
 
-1.  **Consistent Navigation:** Visit `/home` and `/post/create`. The navigation bar and footer should be identical on both.
-2.  **Dynamic Titles:** Pass a `'title'` in your data array and echo it in the `<title>` tag of `main.php`. Does the browser tab change when you switch pages?
-3.  **Data Injection:** In `PostController@index`, pass an array of `posts`. In `views/home.php`, use a `foreach` loop to display them. Do they appear inside the layout?
+1.  **Open phpMyAdmin:** Create a new database named `devblog_db`.
+2.  **Create the Table:**
+    ```sql
+    CREATE TABLE posts (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        content TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    ```
+3.  **Add Seed Data:** Insert at least 2 rows manually so you have something to display.
+4.  **Verify Connection:** If you see a `PDOException`, check your `username` and `password` in `app/Config/Database.php`.
 
 ---
 
 ## ⚠️ Common Troubleshooting
-* **Path Errors:** If you see `include(): failed to open stream`, check your `__DIR__` pathing in the `render()` method. Remember that `index.php` is in the `public/` folder, but your views are in the root `views/` folder.
-* **Undefined Variable $content:** This happens if you include the layout *before* you've captured the buffer. Ensure `ob_get_clean()` happens first!
-* **Nested Buffers:** If your page looks strange or double-rendered, ensure you aren't calling `ob_start()` multiple times without closing them.
+* **Database Not Found:** Ensure the name in your PHP code (`devblog_db`) matches the name you created in phpMyAdmin exactly.
+* **Access Denied:** In XAMPP, the default user is `root` and the password is an **empty string** (`''`).
+* **Fetch Mode:** We set `PDO::FETCH_ASSOC`. This means `$post['title']` will work, but `$post->title` will not. If you prefer objects, change the fetch mode in the Config.

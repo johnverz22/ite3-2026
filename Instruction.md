@@ -1,122 +1,136 @@
-## Phase 2.3: The View Engine (Step-by-Step)
+## Phase 3.1: The Database Connection (The "Singleton" Pattern)
 
-### Step 1: Create the Views Folder Structure
-We need a place for our "Shell" (the layout) and our "Pages" (the views).
-
-```text
-ite3/
-└── views/
-    ├── layouts/
-    │   └── main.php      # The HTML Shell (Header/Footer)
-    ├── home.php          # The Content for the Home page
-    └── post-create.php   # The Content for the Create page
-```
-
----
-
-### Step 2: Create the Master Layout (`views/layouts/main.php`)
-This file contains the `<head>` and `<body>` tags. We use a variable called `$content` to show where the specific page data should appear.
-
-```php
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>DevBlog CMS</title>
-    <style>
-        body { font-family: sans-serif; line-height: 1.6; padding: 20px; }
-        nav { margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
-        nav a { margin-right: 15px; text-decoration: none; color: blue; }
-    </style>
-</head>
-<body>
-    <nav>
-        <a href="/ite3/home">Home</a>
-        <a href="/ite3/post/create">Create Post</a>
-    </nav>
-
-    <main>
-        <?php echo $content; ?>
-    </main>
-
-    <footer>
-        <p>&copy; <?php echo date('Y'); ?> DevBlog CMS - Capstone Model</p>
-    </footer>
-</body>
-</html>
-```
-
----
-
-### Step 3: Create a Page View (`views/home.php`)
-This file **only** contains the HTML for the middle section of the page. No `<html>` or `<body>` tags are needed here.
-
-```php
-<h1>Welcome to the Blog</h1>
-<p>This content is being loaded from a separate view file!</p>
-<ul>
-    <li>Post 1: Learning PHP MVC</li>
-    <li>Post 2: How Autoloaders Work</li>
-</ul>
-```
-
----
-
-### Step 4: The "Magic" Logic (The Render Helper)
-We need a way to tell PHP: "Take `home.php`, save its output into a variable, then put that variable inside `main.php`."
-
-Update your `app/Controllers/PostController.php` with a `render` helper method:
+### Step 1: Create the Configuration
+We don't want to hardcode our password in every file. Create `app/Config/database.php`.
 
 ```php
 <?php
-namespace App\Controllers;
+namespace App\Config;
 
-class PostController {
-    
-    // Helper function to render views
-    protected function render($viewName, $data = []) {
-        // 1. Extract data array into variables 
-        // (e.g., ['title' => 'Home'] becomes $title = 'Home')
-        extract($data);
+class Database {
+    private static $instance = null;
 
-        // 2. Start Output Buffering (Capture everything)
-        ob_start();
-        
-        // 3. Include the specific page view
-        include __DIR__ . "/../../views/{$viewName}.php";
-        
-        // 4. Save the captured HTML into $content and stop buffering
-        $content = ob_get_clean();
+    public static function getConnection() {
+        if (!self::$instance) {
+            $host = 'localhost';
+            $db   = 'devblog_db';
+            $user = 'root';
+            $pass = ''; // Default for XAMPP
+            $charset = 'utf8mb4';
 
-        // 5. Include the master layout (which uses the $content variable)
-        include __DIR__ . "/../../views/layouts/main.php";
-    }
+            $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+            
+            $options = [
+                \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+                \PDO::ATTR_EMULATE_PREPARES   => false,
+            ];
 
-    public function index() {
-        $this->render('home', [
-            'title' => 'Welcome to DevBlog'
-        ]);
-    }
-
-    public function create() {
-        $this->render('post-create');
+            try {
+                self::$instance = new \PDO($dsn, $user, $pass, $options);
+            } catch (\PDOException $e) {
+                throw new \PDOException($e->getMessage(), (int)$e->getCode());
+            }
+        }
+        return self::$instance;
     }
 }
 ```
 
 ---
 
-## 🧠 Why use `ob_start()` and `ob_get_clean()`?
-Normally, as soon as PHP sees HTML or an `echo`, it sends it straight to the browser. 
-* **`ob_start()`** tells PHP: "Wait! Don't send anything to the browser yet. Put it in a temporary 'bucket' instead."
-* **`ob_get_clean()`** says: "Give me everything in that bucket and save it to a variable, then empty the bucket."
+## Phase 3.2: The Base Model
+Instead of writing the same connection code in every model, we create a **Base Model** that all other models will inherit from. Create `app/Models/Model.php`.
+
+```php
+<?php
+namespace App\Models;
+
+use App\Config\Database;
+
+abstract class Model {
+    protected $db;
+
+    public function __construct() {
+        // Automatically get the shared database connection
+        $this->db = Database::getConnection();
+    }
+}
+```
+
+---
+
+## Phase 3.3: The Post Model (The "Librarian")
+Now we create the specific model for our blog posts. Create `app/Models/Post.php`.
+
+```php
+<?php
+namespace App\Models;
+
+class Post extends Model {
+    
+    // Fetch all posts from the database
+    public function all() {
+        $stmt = $this->db->query("SELECT * FROM posts ORDER BY created_at DESC");
+        return $stmt->fetchAll();
+    }
+
+    // Fetch a single post by its ID
+    public function find($id) {
+        $stmt = $this->db->prepare("SELECT * FROM posts WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch();
+    }
+}
+```
 
 
 
 ---
 
-## 🛠️ Individual Task for Students
-1. Create the `views/` folder and the files listed in Step 1.
-2. Update your `PostController` to use the `render()` method instead of `echo`.
-3. Create `views/post-create.php` and add a simple HTML form inside it.
-4. Refresh `localhost/ite3/` and `localhost/ite3/post/create`. You should see the **Navigation Bar** and **Footer** on both pages, but the middle content should change.
+## Step 4: Wiring it to the Controller
+Now, our `PostController` asks the `Post` model for data instead of making it up.
+
+```php
+<?php
+namespace App\Controllers;
+
+use App\Models\Post;
+
+class PostController extends Controller { // Assuming you moved render() to a base Controller
+
+    public function index() {
+        $postModel = new Post();
+        $posts = $postModel->all();
+
+        $this->render('home', [
+            'posts' => $posts
+        ]);
+    }
+}
+```
+
+---
+
+## 🛠️ Individual Task: Database Setup
+Before this code works, students must create the database in **phpMyAdmin**:
+
+1.  Create a database named `devblog_db`.
+2.  Run this SQL:
+```sql
+CREATE TABLE posts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO posts (title, content) VALUES 
+('My First MVC Post', 'This is coming from the database!'),
+('Why PDO is Awesome', 'It protects us from hackers.');
+```
+
+---
+
+## 🧠 Key Concept: Prepared Statements
+Explain to the students: Never use variables directly in a query (e.g., `WHERE id = $id`). Always use **`?`** placeholders. This is the #1 security rule for their Capstone project.

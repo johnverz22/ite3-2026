@@ -14,6 +14,9 @@
                 <strong><?= htmlspecialchars($post['title']) ?></strong>
                 <p><?= htmlspecialchars($post['content']) ?></p>
                 <small>Posted on: <?= $post['created_at'] ?></small>
+                <br>
+                <a href="/ite3/post/edit/<?= $post['id'] ?>">Edit</a> | 
+                <a href="/ite3/post/delete/<?= $post['id'] ?>" onclick="return confirm('Are you sure?')">Delete</a>
             </li>
             <hr>
         <?php endforeach; ?>

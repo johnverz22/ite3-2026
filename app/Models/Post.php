@@ -21,4 +21,16 @@ class Post extends Model {
         $stmt = $this->db->prepare("INSERT INTO posts (title, content) VALUES (?, ?)");
         return $stmt->execute([$title, $content]);
     }
+
+    // Update an existing post
+    public function update($id, $title, $content) {
+        $stmt = $this->db->prepare("UPDATE posts SET title = ?, content = ? WHERE id = ?");
+        return $stmt->execute([$title, $content, $id]);
+    }
+
+    // Delete a post
+    public function delete($id) {
+        $stmt = $this->db->prepare("DELETE FROM posts WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
 }

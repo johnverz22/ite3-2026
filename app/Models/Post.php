@@ -15,4 +15,10 @@ class Post extends Model {
         $stmt->execute([$id]);
         return $stmt->fetch();
     }
+
+    // Insert a new post
+    public function create($title, $content) {
+        $stmt = $this->db->prepare("INSERT INTO posts (title, content) VALUES (?, ?)");
+        return $stmt->execute([$title, $content]);
+    }
 }

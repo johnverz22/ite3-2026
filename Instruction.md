@@ -1,136 +1,136 @@
-## Phase 3.1: The Database Connection (The "Singleton" Pattern)
+# 🚀 Phase 4: Models & Content CRUD
 
-### Step 1: Create the Configuration
-We don't want to hardcode our password in every file. Create `app/Config/database.php`.
+In this phase, you will refactor your code to follow professional standards and make your blog homepage dynamic by pulling real data from the database.
 
-```php
-<?php
-namespace App\Config;
+## Phase 4.1: Create the Base Controller
+Don't repeat yourself (DRY)! Instead of writing the `render()` helper in every single controller, you will create a **Base Controller** that all your other controllers will inherit from.
 
-class Database {
-    private static $instance = null;
-
-    public static function getConnection() {
-        if (!self::$instance) {
-            $host = 'localhost';
-            $db   = 'devblog_db';
-            $user = 'root';
-            $pass = ''; // Default for XAMPP
-            $charset = 'utf8mb4';
-
-            $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
-            
-            $options = [
-                \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
-                \PDO::ATTR_EMULATE_PREPARES   => false,
-            ];
-
-            try {
-                self::$instance = new \PDO($dsn, $user, $pass, $options);
-            } catch (\PDOException $e) {
-                throw new \PDOException($e->getMessage(), (int)$e->getCode());
-            }
-        }
-        return self::$instance;
-    }
-}
-```
-
----
-
-## Phase 3.2: The Base Model
-Instead of writing the same connection code in every model, we create a **Base Model** that all other models will inherit from. Create `app/Models/Model.php`.
-
-```php
-<?php
-namespace App\Models;
-
-use App\Config\Database;
-
-abstract class Model {
-    protected $db;
-
-    public function __construct() {
-        // Automatically get the shared database connection
-        $this->db = Database::getConnection();
-    }
-}
-```
-
----
-
-## Phase 3.3: The Post Model (The "Librarian")
-Now we create the specific model for our blog posts. Create `app/Models/Post.php`.
-
-```php
-<?php
-namespace App\Models;
-
-class Post extends Model {
-    
-    // Fetch all posts from the database
-    public function all() {
-        $stmt = $this->db->query("SELECT * FROM posts ORDER BY created_at DESC");
-        return $stmt->fetchAll();
-    }
-
-    // Fetch a single post by its ID
-    public function find($id) {
-        $stmt = $this->db->prepare("SELECT * FROM posts WHERE id = ?");
-        $stmt->execute([$id]);
-        return $stmt->fetch();
-    }
-}
-```
-
-
-
----
-
-## Step 4: Wiring it to the Controller
-Now, our `PostController` asks the `Post` model for data instead of making it up.
+**Your Task:** Create a new file at `app/Controllers/Controller.php` and add this code:
 
 ```php
 <?php
 namespace App\Controllers;
 
-use App\Models\Post;
+abstract class Controller {
+    
+    protected function render($viewName, $data = []) {
+        // 1. Extract the data array into variables
+        extract($data);
 
-class PostController extends Controller { // Assuming you moved render() to a base Controller
+        // 2. Start capturing the output
+        ob_start();
+        
+        // 3. Load the specific view file
+        include __DIR__ . "/../views/{$viewName}.php";
+        
+        // 4. Save the view content and stop capturing
+        $content = ob_get_clean();
 
-    public function index() {
-        $postModel = new Post();
-        $posts = $postModel->all();
-
-        $this->render('home', [
-            'posts' => $posts
-        ]);
+        // 5. Load the master layout (which uses $content)
+        include __DIR__ . "/../views/layouts/main.php";
     }
 }
 ```
 
 ---
 
-## 🛠️ Individual Task: Database Setup
-Before this code works, students must create the database in **phpMyAdmin**:
+## Phase 4.2: Make the Homepage Dynamic
+It's time to stop using "Lorem Ipsum." You need to update your homepage view to loop through the posts you've saved in your database.
 
-1.  Create a database named `devblog_db`.
-2.  Run this SQL:
-```sql
-CREATE TABLE posts (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+**Your Task:** Open `app/Views/home.php` and update it with this loop:
 
-INSERT INTO posts (title, content) VALUES 
-('My First MVC Post', 'This is coming from the database!'),
-('Why PDO is Awesome', 'It protects us from hackers.');
+```php
+<h1>Welcome to the Blog</h1>
+<a href="/ite3/post/create">Add New Post</a>
+<hr>
+
+<?php foreach ($posts as $post): ?>
+    <div>
+        <h3><?= htmlspecialchars($post['title']) ?></h3>
+        <p><?= htmlspecialchars($post['content']) ?></p>
+        <small>Posted on: <?= $post['created_at'] ?></small>
+    </div>
+    <hr>
+<?php endforeach; ?>
 ```
 
 ---
 
-## 🧠 Key Concept: Prepared Statements
-Explain to the students: Never use variables directly in a query (e.g., `WHERE id = $id`). Always use **`?`** placeholders. This is the #1 security rule for their Capstone project.
+## Phase 4.3: Build the Post Creation Flow
+You need to allow users to add new posts. This requires three parts: a form, a model method, and a controller action.
+
+### 1. Create the Form
+Open `app/Views/post-create.php` and create the HTML form. Make sure the `method` is set to `POST`.
+
+```html
+<h1>Create a New Post</h1>
+<form action="/ite3/post/store" method="POST">
+    <input type="text" name="title" placeholder="Post Title" required><br><br>
+    <textarea name="content" placeholder="Write your content here..." rows="5" required></textarea><br><br>
+    <button type="submit">Publish Post</button>
+</form>
+```
+
+### 2. Update the Post Model
+Open `app/Models/Post.php` and add the `create()` method. You must use **Prepared Statements** here to keep the app secure.
+
+```php
+public function create($title, $content) {
+    $stmt = $this->db->prepare("INSERT INTO posts (title, content) VALUES (?, ?)");
+    return $stmt->execute([$title, $content]);
+}
+```
+
+### 3. Handle the Submission in the Controller
+Open `app/Controllers/PostController.php`. Add the `store()` method to handle the incoming form data and redirect the user back home.
+
+```php
+public function store() {
+    $title = $_POST['title'];
+    $content = $_POST['content'];
+
+    if (!empty($title) && !empty($content)) {
+        $postModel = new Post();
+        $postModel->create($title, $content);
+    }
+
+    // Redirect back to the home page after saving
+    header('Location: /ite3/home');
+    exit;
+}
+```
+
+---
+
+## 🧠 Key Concept: XSS Protection
+**Never** display user-provided data directly using `<?= $post['title'] ?>`. 
+**Always** wrap it in `htmlspecialchars()`. This prevents hackers from injecting `<script>` tags that could steal user cookies or deface your site.
+
+---
+
+## Phase 5: Cleaner Routing & Organization
+As you add more pages, your `public/index.php` will get messy. You are going to move your "URL Map" into its own dedicated file.
+
+### 1. Create the Route Switchboard
+Create a new file at `app/routes.php`. This is where you will register all your URLs from now on.
+
+```php
+<?php
+// app/routes.php
+$router->get('home', 'PostController@index');
+$router->get('post/create', 'PostController@create');
+$router->post('post/store', 'PostController@store');
+```
+
+### 2. Clean up `public/index.php`
+Open `public/index.php`. Remove the manual route definitions and replace them with a single `require` statement.
+
+```php
+// Find where you defined $router and replace the old routes with this:
+$router = new Router();
+
+// Load the routes from your new file
+require __DIR__ . '/../app/routes.php';
+
+$router->resolve($uri, $method);
+```

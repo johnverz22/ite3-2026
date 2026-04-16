@@ -1,6 +1,21 @@
 <h1>Welcome to the Blog</h1>
-<p>This content is being loaded from a separate view file!</p>
-<ul>
-    <li>Post 1: Learning PHP MVC</li>
-    <li>Post 2: How Autoloaders Work</li>
-</ul>
+<p>This content is being loaded from the database!</p>
+
+<a href="/ite3/post/create">Add New Post</a>
+
+<hr>
+
+<?php if (empty($posts)): ?>
+    <p>No posts found.</p>
+<?php else: ?>
+    <ul>
+        <?php foreach ($posts as $post): ?>
+            <li>
+                <strong><?= htmlspecialchars($post['title']) ?></strong>
+                <p><?= htmlspecialchars($post['content']) ?></p>
+                <small>Posted on: <?= $post['created_at'] ?></small>
+            </li>
+            <hr>
+        <?php endforeach; ?>
+    </ul>
+<?php endif; ?>

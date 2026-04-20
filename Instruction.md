@@ -86,6 +86,28 @@ class Post extends Model {
 
 
 
+
+---
+
+## Phase 3.4: The Base Controller
+Instead of putting the `render()` function in every controller, we move it to a **Base Controller**. This follows the DRY principle. Create `app/Controllers/Controller.php`.
+
+```php
+<?php
+namespace App\Controllers;
+
+abstract class Controller {
+    
+    protected function render($viewName, $data = []) {
+        extract($data);
+        ob_start();
+        include __DIR__ . "/../Views/{$viewName}.php";
+        $content = ob_get_clean();
+        include __DIR__ . "/../Views/layouts/main.php";
+    }
+}
+```
+
 ---
 
 ## Step 4: Wiring it to the Controller

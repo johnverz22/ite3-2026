@@ -1,51 +1,88 @@
-# 🚀 Phase 11: Composer & Environment Variables
+# 🚀 Phase 11: Composer & Dotenv (Step-by-Step)
 
-In this phase, we move from manual setups to professional industry standards using **Composer** and **Dotenv**.
+In this phase, we modernize the project's infrastructure using industry-standard tools for dependency management and secure configuration.
 
 ---
 
-## 1. Introducing Composer
-Composer is the "App Store" for PHP libraries. Instead of writing everything from scratch, we can use libraries built by the community.
+## 🛠️ Step 1: The Shopping List (`composer.json`)
+Create a file named `composer.json` in your project root. This tells PHP which libraries we need and how our own classes should be loaded.
 
-**Key Files:**
-- `composer.json`: The "Shopping List" of your project.
-- `vendor/`: The folder where all external libraries live.
+```json
+{
+    "require": {
+        "vlucas/phpdotenv": "^5.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    }
+}
+```
 
-**Command to run:**
+---
+
+## 🛠️ Step 2: Installation
+Open your terminal in the project root and run the following command. This will create the `vendor/` folder and download all necessary libraries.
+
 ```powershell
 composer install
 ```
 
 ---
 
-## 2. Environment Variables (`.env`)
-Never hardcode your database passwords! We use a `.env` file to store settings that change depending on where the app is running.
+## 🛠️ Step 3: Secure Secrets (`.env`)
+1. Create a file named `.env.example` as a template.
+2. Create a file named `.env` and fill it with your local details:
 
-**New logic:**
-1. Create a `.env` file (see `.env.example`).
-2. Use `$_ENV['DB_PASS']` in your code instead of writing it directly.
+```env
+DB_HOST=localhost
+DB_NAME=ite3_db
+DB_USER=root
+DB_PASS=
+APP_BASE_PATH=ite3
+```
 
----
-
-## 3. Fixing the "Directory Listing" Issue
-We've added a root `index.php`. Now, when you visit `localhost/ite3`, it will automatically redirect you to the `public/` folder where our real app lives.
-
----
-
-## 🛠️ Student Checklist
-*   [ ] Verify you have **Composer** installed (`composer --version`).
-*   [ ] Run `composer install` in your project root.
-*   [ ] Create your own `.env` file by copying `.env.example`.
-*   [ ] Update your `public/index.php` to use the `vendor/autoload.php`.
-*   [ ] Check that your `.env` variables are being loaded correctly.
-*   [ ] **CRITICAL:** Ensure `.env` is listed in your `.gitignore` so you don't leak passwords to GitHub!
+**CRITICAL:** Add `.env` and `/vendor/` to your `.gitignore` file so you don't upload your passwords to GitHub!
 
 ---
 
-## 🧠 Key Concept: Portability
-By using `.env` and Composer, your project is now "Portable." Another developer can download your code, run `composer install`, create their own `.env`, and the app will work perfectly on their machine without changing a single line of your PHP code!
+## 🛠️ Step 4: Refactor the Autoloader
+In `public/index.php`, **delete** your manual `spl_autoload_register` block and replace it with:
+
+```php
+// 1. Load Composer's Autoloader
+require_once __DIR__ . '/../vendor/autoload.php';
+
+// 2. Load Environment Variables
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
+```
 
 ---
 
-## 🎯 Challenge
-Can you add a custom variable to your `.env` called `APP_MAINTENANCE=false` and use it in `index.php` to show a "Coming Soon" message if it is set to `true`?
+## 🛠️ Step 5: Update the Database Config
+Update `app/Config/database.php` to use the environment variables instead of hardcoded strings:
+
+```php
+$host = $_ENV['DB_HOST'] ?? 'localhost';
+$user = $_ENV['DB_USER'] ?? 'root';
+// ... etc
+```
+
+---
+
+## 🛠️ Step 6: Fix the Entrance
+To prevent users from seeing a list of files when they visit `localhost/ite3`, create a simple `index.php` in your **root folder**:
+
+```php
+<?php
+// Redirect to the secure public folder
+header("Location: public/");
+exit;
+```
+
+---
+
+## 🎯 Student Challenge
+Can you move your `APP_URL` to the `.env` file and use it in your navigation links? This makes it easy to switch between `localhost` and a real website in the future!

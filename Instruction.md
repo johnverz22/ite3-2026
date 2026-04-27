@@ -1,33 +1,21 @@
-# 🚀 Phase 10: The Service Layer
+# 🚀 Phase 10: The Service Layer (Step-by-Step)
 
-In this phase, we are taking our "MVC" architecture to a professional level by introducing a **Service Layer**. This is where the complex "Business Logic" lives.
-
----
-
-## 1. What is a Service?
-While the **Controller** handles the request and the **Model** handles the database, the **Service** handles the "Work." 
-
-**Example: Slug Generation**
-A blog post needs a URL-friendly name (e.g., `my-post-title`). Generating this involves:
-1. Converting to lowercase.
-2. Replacing spaces with hyphens.
-3. Removing special characters.
-
-Instead of putting this logic in the Controller, we put it in `app/Services/PostService.php`.
+In this phase, we move beyond simple CRUD and introduce a **Service Layer**. This is where we handle complex logic that doesn't belong in a Controller or a Model.
 
 ---
 
-## 2. Database Update
-You need to add a `slug` column to your `posts` table.
+## 🛠️ Step 1: Database Update
+We need to store a URL-friendly "Slug" for each post. Run this SQL in your database tool:
 
-**Run this SQL:**
 ```sql
 ALTER TABLE posts ADD COLUMN slug VARCHAR(255) NOT NULL UNIQUE AFTER title;
 ```
 
 ---
 
-## 3. Implementing the Service (`app/Services/PostService.php`)
+## 🛠️ Step 2: Creating the Service (`app/Services/PostService.php`)
+This class will be responsible for "Business Logic"—in this case, transforming a messy title into a clean URL slug.
+
 ```php
 namespace App\Services;
 
@@ -42,19 +30,45 @@ class PostService {
 
 ---
 
-## 🛠️ Student Checklist
-*   [ ] Run the SQL to add the `slug` column.
-*   [ ] Create the `app/Services/PostService.php` file.
-*   [ ] Update `app/Models/Post.php` to save the `slug` in the database.
-*   [ ] Refactor `PostController.php` to use the `PostService` before calling the model.
-*   [ ] Display the slug on the `home.php` page next to the title.
+## 🛠️ Step 3: Model Update (`app/Models/Post.php`)
+Update your `create()` and `update()` methods to include the new `slug` parameter in the SQL queries.
+
+```php
+public function create($title, $slug, $content) {
+    $stmt = $this->db->prepare("INSERT INTO posts (title, slug, content) VALUES (?, ?, ?)");
+    return $stmt->execute([$title, $slug, $content]);
+}
+```
+
+---
+
+## 🛠️ Step 4: Controller Refactoring (`PostController.php`)
+This is the most important part! The Controller now asks the Service to generate the slug *before* it sends everything to the Model.
+
+```php
+// 1. Generate the slug using the Service
+$slug = PostService::generateSlug($title);
+
+// 2. Pass it to the Model
+$postModel->create($title, $slug, $content);
+```
+
+---
+
+## 🛠️ Step 5: View Update (`app/Views/home.php`)
+Show the generated slug next to your post titles so you can verify it's working!
+
+```html
+<strong><?= $post['title'] ?></strong>
+<small>/<?= $post['slug'] ?></small>
+```
 
 ---
 
 ## 🧠 Key Concept: Thin Controllers, Fat Services
-We want our **Controllers** to be "Thin"—they should only coordinate between the view, the service, and the model. The **Services** can be "Fat"—they handle the heavy lifting and complex calculations. This makes your code easier to test and maintain!
+We want our **Controllers** to be "Thin"—they should only coordinate between the view, the service, and the model. The **Services** handle the heavy lifting. This makes your code cleaner and easier to test.
 
 ---
 
 ## 🎯 Challenge
-Can you update the `PostService` to ensure that slugs are unique? (e.g., if `my-post` already exists, name the new one `my-post-1`).
+Can you update the `PostService` to handle "Double Hyphens"? (e.g., if a title is "Hello @ World", it might generate `hello---world`. Use regex to turn multiple hyphens into one: `hello-world`).

@@ -1,6 +1,7 @@
 CREATE TABLE posts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) NOT NULL UNIQUE,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -13,9 +14,9 @@ CREATE TABLE users (
 );
 
 -- Default Posts
-INSERT INTO posts (title, content) VALUES 
-('My First MVC Post', 'This is coming from the database!'),
-('Why PDO is Awesome', 'It protects us from hackers.');
+INSERT INTO posts (title, slug, content) VALUES 
+('My First MVC Post', 'my-first-mvc-post', 'This is coming from the database!'),
+('Why PDO is Awesome', 'why-pdo-is-awesome', 'It protects us from hackers.');
 
 -- Default Admin User (Password: admin123)
 INSERT INTO users (username, password) VALUES 

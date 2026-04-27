@@ -3,6 +3,7 @@ namespace App\Controllers;
 
 use App\Models\Post;
 use App\Helpers\Validator;
+use App\Services\PostService;
 
 class PostController extends Controller {
 
@@ -42,12 +43,15 @@ class PostController extends Controller {
         if (Validator::hasErrors()) {
             return $this->render('post-create', [
                 'errors' => Validator::getErrors(),
-                'old' => $_POST // Keep old values
+                'old' => $_POST
             ]);
         }
 
+        // Service Layer: Generate Slug
+        $slug = PostService::generateSlug($title);
+
         $postModel = new Post();
-        $postModel->create($title, $content);
+        $postModel->create($title, $slug, $content);
 
         header('Location: /ite3/home');
         exit;
@@ -89,8 +93,11 @@ class PostController extends Controller {
             ]);
         }
 
+        // Service Layer: Generate Slug
+        $slug = PostService::generateSlug($title);
+
         $postModel = new Post();
-        $postModel->update($id, $title, $content);
+        $postModel->update($id, $title, $slug, $content);
 
         header('Location: /ite3/home');
         exit;

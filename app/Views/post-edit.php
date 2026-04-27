@@ -5,6 +5,7 @@
     <div style="margin-bottom: 1rem;">
         <label>Title:</label><br>
         <input type="text" name="title" value="<?= htmlspecialchars($post['title']) ?>" style="width: 100%; padding: 0.5rem;" required>
+        <small>Current Slug: <strong><?= $post['slug'] ?></strong> (Will be updated based on title)</small>
         <?php if (isset($errors['title'])): ?>
             <span style="color: red; font-size: 0.8rem;"><?= $errors['title'] ?></span>
         <?php endif; ?>

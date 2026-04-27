@@ -17,15 +17,15 @@ class Post extends Model {
     }
 
     // Insert a new post
-    public function create($title, $content) {
-        $stmt = $this->db->prepare("INSERT INTO posts (title, content) VALUES (?, ?)");
-        return $stmt->execute([$title, $content]);
+    public function create($title, $slug, $content) {
+        $stmt = $this->db->prepare("INSERT INTO posts (title, slug, content) VALUES (?, ?, ?)");
+        return $stmt->execute([$title, $slug, $content]);
     }
 
     // Update an existing post
-    public function update($id, $title, $content) {
-        $stmt = $this->db->prepare("UPDATE posts SET title = ?, content = ? WHERE id = ?");
-        return $stmt->execute([$title, $content, $id]);
+    public function update($id, $title, $slug, $content) {
+        $stmt = $this->db->prepare("UPDATE posts SET title = ?, slug = ?, content = ? WHERE id = ?");
+        return $stmt->execute([$title, $slug, $content, $id]);
     }
 
     // Delete a post

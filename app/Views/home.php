@@ -9,6 +9,7 @@
         <?php foreach ($posts as $post): ?>
             <li>
                 <strong><?= htmlspecialchars($post['title']) ?></strong>
+                <small style="color: var(--primary);">/<?= htmlspecialchars($post['slug']) ?></small>
                 <p><?= htmlspecialchars($post['content']) ?></p>
                 <small>Posted on: <?= $post['created_at'] ?></small>
                 

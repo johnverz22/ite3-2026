@@ -15,6 +15,11 @@
         <div>
             <a href="/ite3/home">Home</a>
             <a href="/ite3/post/create">Create Post</a>
+            <?php if (isset($_SESSION['user_id'])): ?>
+                <a href="/ite3/logout" style="color: #ef4444;">Logout (<?= $_SESSION['username'] ?>)</a>
+            <?php else: ?>
+                <a href="/ite3/login">Login</a>
+            <?php endif; ?>
         </div>
     </nav>
 

@@ -5,6 +5,14 @@ use App\Models\Post;
 
 class PostController extends Controller {
 
+    // Helper to check if user is logged in
+    protected function checkAuth() {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /ite3/login');
+            exit;
+        }
+    }
+
     public function index() {
         $postModel = new Post();
         $posts = $postModel->all();
@@ -15,10 +23,12 @@ class PostController extends Controller {
     }
 
     public function create() {
+        $this->checkAuth();
         $this->render('post-create');
     }
 
     public function store() {
+        $this->checkAuth();
         $title = $_POST['title'] ?? '';
         $content = $_POST['content'] ?? '';
 
@@ -32,6 +42,7 @@ class PostController extends Controller {
     }
 
     public function edit($id) {
+        $this->checkAuth();
         $postModel = new Post();
         $post = $postModel->find($id);
 
@@ -46,6 +57,7 @@ class PostController extends Controller {
     }
 
     public function update() {
+        $this->checkAuth();
         $id = $_POST['id'] ?? null;
         $title = $_POST['title'] ?? '';
         $content = $_POST['content'] ?? '';
@@ -60,6 +72,7 @@ class PostController extends Controller {
     }
 
     public function delete($id) {
+        $this->checkAuth();
         $postModel = new Post();
         $postModel->delete($id);
 

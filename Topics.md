@@ -20,7 +20,7 @@
 
 ## Phase 4: Features & Security (Completed ✅)
 *   **4.1 CRUD Operations:** Building the Admin Dashboard to Create, Read, Update, and Delete blog posts. (Full CRUD implemented with clean URLs) ✅
-*   **4.2 Authentication:** Building the Login/Logout system and protecting Admin routes. (Pending ⏳)
+*   **4.2 Authentication:** Building the Login/Logout system and protecting Admin routes. ✅
 *   **4.3 Input Validation:** Creating a helper class to check for empty fields or invalid emails. (Pending ⏳)
 
 ## Phase 5: Professional Refactoring (Pending ⏳)

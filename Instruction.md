@@ -1,13 +1,12 @@
-# 🚀 Phase 8: Authentication (Login/Logout)
+# 🚀 Phase 8: Authentication (Step-by-Step)
 
-In this phase, we are securing our CMS. Only logged-in users should be able to create, edit, or delete posts.
+In this phase, we secure our CMS by adding a Login system. This ensures that only authorized users can create, edit, or delete posts.
 
 ---
 
-## 1. Database Update
-You need a `users` table to store credentials.
+## 🛠️ Step 1: Database Update
+You need a table to store your administrators. Run this SQL command in your database tool:
 
-**Run this in your SQL tool:**
 ```sql
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -15,42 +14,68 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Default Admin User (Password: admin123)
+INSERT INTO users (username, password) VALUES 
+('admin', '$2y$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMp99VvD73XG');
 ```
 
 ---
 
-## 2. Secure Password Hashing
-NEVER store plain-text passwords. We use PHP's built-in functions:
-- `password_hash($password, PASSWORD_DEFAULT)` -> For saving.
-- `password_verify($password, $hashedPassword)` -> For checking.
+## 🛠️ Step 2: The User Model (`app/Models/User.php`)
+Create a model to handle fetching user data. This is where we verify if a username exists in the database.
+
+```php
+public function findByUsername($username) {
+    $stmt = $this->db->prepare("SELECT * FROM users WHERE username = ?");
+    $stmt->execute([$username]);
+    return $stmt->fetch();
+}
+```
 
 ---
 
-## 3. Session Management
-We use `session_start()` at the very beginning of our app (usually in `public/index.php`) to keep track of logged-in users across pages.
+## 🛠️ Step 3: Session Initialization
+HTTP is "stateless," meaning it doesn't remember who you are. We use **Sessions** to bridge this gap. Add this to the very top of your `public/index.php`:
 
-**Logic flow:**
-1. User submits login form.
-2. If credentials match, we set `$_SESSION['user_id'] = $id`.
-3. In protected routes, we check: `if (!isset($_SESSION['user_id'])) { redirect to login; }`.
+```php
+session_start();
+```
 
 ---
 
-## 🛠️ Student Checklist
-*   [ ] Run the SQL to create the `users` table.
-*   [ ] Implement the `User` model to fetch users by username.
-*   [ ] Create the `AuthController` with `login` and `logout` actions.
-*   [ ] Create the `login.php` view.
-*   [ ] Add `session_start()` to your `public/index.php`.
-*   [ ] Add "Auth Guards" (session checks) to your `PostController` methods.
+## 🛠️ Step 4: The Login Logic (`app/Controllers/AuthController.php`)
+This controller handles the "Gatekeeping." It checks the password hash and sets the session.
+
+```php
+if ($user && password_verify($password, $user['password'])) {
+    $_SESSION['user_id'] = $user['id'];
+    header('Location: /ite3/home');
+    exit;
+}
+```
+
+---
+
+## 🛠️ Step 5: The Auth Guard (`PostController.php`)
+Now, we protect our administrative actions. Add a helper method to your controller and call it at the start of `create`, `edit`, and `delete`.
+
+```php
+protected function checkAuth() {
+    if (!isset($_SESSION['user_id'])) {
+        header('Location: /ite3/login');
+        exit;
+    }
+}
+```
 
 ---
 
 ## 🧠 Key Concept: Stateful Apps
-HTTP is "stateless" (it forgets who you are after every request). **Sessions** allow us to make our app "stateful" by storing a unique ID in a cookie that matches a file on the server. This is how the server "remembers" you are logged in!
+By storing a `user_id` in the `$_SESSION` array, we make our app "Stateful." The server now "remembers" that you are logged in as you move from page to page.
 
 ---
 
 ## 🎯 Challenge
-Can you display the logged-in username in the navigation bar? 
-*Hint: Use `$_SESSION['username']` if you store it during login.*
+Can you update your navigation bar in `main.php` to show a "Logout" link *only* when the user is logged in? 
+*Hint: Use `<?php if (isset($_SESSION['user_id'])): ?>`*

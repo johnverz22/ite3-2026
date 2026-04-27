@@ -7,7 +7,7 @@
 <?php else: ?>
     <ul>
         <?php foreach ($posts as $post): ?>
-            <li>
+            <li class="reveal">
                 <strong><?= htmlspecialchars($post['title']) ?></strong>
                 <small style="color: var(--primary);">/<?= htmlspecialchars($post['slug']) ?></small>
                 <p><?= htmlspecialchars($post['content']) ?></p>
@@ -15,7 +15,7 @@
                 
                 <div class="actions">
                     <a href="/ite3/post/edit/<?= $post['id'] ?>">Edit</a>
-                    <a href="/ite3/post/delete/<?= $post['id'] ?>" class="delete" onclick="return confirm('Are you sure?')">Delete</a>
+                    <a href="/ite3/post/delete/<?= $post['id'] ?>" class="delete delete-btn">Delete</a>
                 </div>
             </li>
         <?php endforeach; ?>

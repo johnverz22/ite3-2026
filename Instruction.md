@@ -1,51 +1,54 @@
-# 🚀 Phase 11: Composer & Environment Variables
+# 🚀 Phase 12: Vanilla JS Interactivity
 
-In this phase, we move from manual setups to professional industry standards using **Composer** and **Dotenv**.
+In this phase, we move beyond static HTML and add a layer of modern "feel" to our app using **Vanilla JavaScript**.
 
 ---
 
-## 1. Introducing Composer
-Composer is the "App Store" for PHP libraries. Instead of writing everything from scratch, we can use libraries built by the community.
+## 1. Custom Modals
+Browser alerts like `confirm()` look dated. We will build our own **Modal** component using HTML/CSS and control its visibility with JS.
 
-**Key Files:**
-- `composer.json`: The "Shopping List" of your project.
-- `vendor/`: The folder where all external libraries live.
+**Key Steps:**
+- Add a hidden `<div id="deleteModal">` to your layout.
+- Use `element.classList.add('active')` to show it when a delete button is clicked.
 
-**Command to run:**
-```powershell
-composer install
+---
+
+## 2. Toast Notifications
+Toasts are temporary messages that appear at the bottom of the screen to give the user feedback (e.g., "Post Saved!").
+
+**Workflow:**
+1. PHP sets a "Flash Message" in the session.
+2. The Layout checks for this message and triggers a JS function.
+3. JS creates a temporary `div` and fades it out after 3 seconds.
+
+---
+
+## 3. Smooth Scrolling & Animations
+We will use the **Intersection Observer API** to detect when a post enters the screen and apply a "Fade In" animation.
+
+```javascript
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('show');
+    });
+});
 ```
 
 ---
 
-## 2. Environment Variables (`.env`)
-Never hardcode your database passwords! We use a `.env` file to store settings that change depending on where the app is running.
-
-**New logic:**
-1. Create a `.env` file (see `.env.example`).
-2. Use `$_ENV['DB_PASS']` in your code instead of writing it directly.
-
----
-
-## 3. Fixing the "Directory Listing" Issue
-We've added a root `index.php`. Now, when you visit `localhost/ite3`, it will automatically redirect you to the `public/` folder where our real app lives.
-
----
-
 ## 🛠️ Student Checklist
-*   [ ] Verify you have **Composer** installed (`composer --version`).
-*   [ ] Run `composer install` in your project root.
-*   [ ] Create your own `.env` file by copying `.env.example`.
-*   [ ] Update your `public/index.php` to use the `vendor/autoload.php`.
-*   [ ] Check that your `.env` variables are being loaded correctly.
-*   [ ] **CRITICAL:** Ensure `.env` is listed in your `.gitignore` so you don't leak passwords to GitHub!
+*   [ ] Add the Modal and Toast HTML to `main.php`.
+*   [ ] Implement the `showToast()` and `openModal()` functions in `app.js`.
+*   [ ] Update `PostController.php` to set `$_SESSION['flash']` messages.
+*   [ ] Use `scroll-behavior: smooth;` in your CSS.
+*   [ ] Add a `.reveal` class to your blog posts and observe them fading in as you scroll.
 
 ---
 
-## 🧠 Key Concept: Portability
-By using `.env` and Composer, your project is now "Portable." Another developer can download your code, run `composer install`, create their own `.env`, and the app will work perfectly on their machine without changing a single line of your PHP code!
+## 🧠 Key Concept: The User Experience (UX)
+Code isn't just about logic—it's about how it *feels*. By adding subtle animations and custom components, you make your app feel premium and high-quality, which is essential for any professional portfolio project.
 
 ---
 
 ## 🎯 Challenge
-Can you add a custom variable to your `.env` called `APP_MAINTENANCE=false` and use it in `index.php` to show a "Coming Soon" message if it is set to `true`?
+Can you make the Toast notification change color? (e.g., Green for success, Red for errors).

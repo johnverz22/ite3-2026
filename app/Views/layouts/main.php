@@ -23,6 +23,20 @@
         </div>
     </nav>
 
+    <!-- UI Containers -->
+    <div id="toast-container"></div>
+
+    <div id="deleteModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Are you sure?</h3>
+            <p>This action cannot be undone.</p>
+            <div class="modal-btns">
+                <button id="cancelDelete" class="btn btn-secondary">Cancel</button>
+                <button id="confirmDelete" class="btn" style="background: #ef4444;">Delete</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <main>
             <?php echo $content; ?>
@@ -35,5 +49,14 @@
 
     <!-- External JS -->
     <script src="/ite3/js/app.js"></script>
+
+    <?php if (isset($_SESSION['flash'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                showToast("<?= $_SESSION['flash'] ?>");
+            });
+        </script>
+        <?php unset($_SESSION['flash']); ?>
+    <?php endif; ?>
 </body>
 </html>

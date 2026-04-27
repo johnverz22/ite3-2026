@@ -53,6 +53,7 @@ class PostController extends Controller {
         $postModel = new Post();
         $postModel->create($title, $slug, $content);
 
+        $_SESSION['flash'] = "Post published successfully!";
         header('Location: /ite3/home');
         exit;
     }
@@ -99,6 +100,7 @@ class PostController extends Controller {
         $postModel = new Post();
         $postModel->update($id, $title, $slug, $content);
 
+        $_SESSION['flash'] = "Post updated successfully!";
         header('Location: /ite3/home');
         exit;
     }
@@ -108,6 +110,7 @@ class PostController extends Controller {
         $postModel = new Post();
         $postModel->delete($id);
 
+        $_SESSION['flash'] = "Post deleted successfully!";
         header('Location: /ite3/home');
         exit;
     }

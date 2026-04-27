@@ -1,56 +1,62 @@
-# 🚀 Phase 8: Authentication (Login/Logout)
+# 🚀 Phase 9: Input Validation
 
-In this phase, we are securing our CMS. Only logged-in users should be able to create, edit, or delete posts.
+In this phase, we ensure that the data entered by users is valid and safe. We will build a reusable **Helper Class** to handle these checks.
 
 ---
 
-## 1. Database Update
-You need a `users` table to store credentials.
+## 1. The Helper Pattern
+Instead of writing the same `if (empty($field))` checks in every controller, we create a `Validator` class. This follows the **DRY (Don't Repeat Yourself)** principle.
 
-**Run this in your SQL tool:**
-```sql
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+**File:** `app/Helpers/Validator.php`
+```php
+class Validator {
+    public static function required($value) {
+        return !empty(trim($value));
+    }
+}
 ```
 
 ---
 
-## 2. Secure Password Hashing
-NEVER store plain-text passwords. We use PHP's built-in functions:
-- `password_hash($password, PASSWORD_DEFAULT)` -> For saving.
-- `password_verify($password, $hashedPassword)` -> For checking.
+## 2. Handling Errors
+When validation fails, we need to:
+1. Stop the process (don't save to DB).
+2. Store the error messages.
+3. Pass those messages back to the view.
+
+**In the Controller:**
+```php
+if (!Validator::required($_POST['title'])) {
+    $errors['title'] = "Title is required!";
+}
+```
 
 ---
 
-## 3. Session Management
-We use `session_start()` at the very beginning of our app (usually in `public/index.php`) to keep track of logged-in users across pages.
+## 3. Displaying Errors in the View
+We check if any errors exist and display them in a user-friendly way (usually in red text below the input field).
 
-**Logic flow:**
-1. User submits login form.
-2. If credentials match, we set `$_SESSION['user_id'] = $id`.
-3. In protected routes, we check: `if (!isset($_SESSION['user_id'])) { redirect to login; }`.
+```php
+<?php if (isset($errors['title'])): ?>
+    <span style="color: red;"><?= $errors['title'] ?></span>
+<?php endif; ?>
+```
 
 ---
 
 ## 🛠️ Student Checklist
-*   [ ] Run the SQL to create the `users` table.
-*   [ ] Implement the `User` model to fetch users by username.
-*   [ ] Create the `AuthController` with `login` and `logout` actions.
-*   [ ] Create the `login.php` view.
-*   [ ] Add `session_start()` to your `public/index.php`.
-*   [ ] Add "Auth Guards" (session checks) to your `PostController` methods.
+*   [ ] Create the `app/Helpers/Validator.php` file.
+*   [ ] Use the `Validator` in `PostController` for both **creating** and **updating** posts.
+*   [ ] Use the `Validator` in `AuthController` to ensure usernames/passwords aren't blank.
+*   [ ] Update your views (`login.php`, `post-create.php`, `post-edit.php`) to show error messages.
+*   [ ] Test: Try to save a post without a title. Does it show the error?
 
 ---
 
-## 🧠 Key Concept: Stateful Apps
-HTTP is "stateless" (it forgets who you are after every request). **Sessions** allow us to make our app "stateful" by storing a unique ID in a cookie that matches a file on the server. This is how the server "remembers" you are logged in!
+## 🧠 Key Concept: Data Integrity
+Validation is the "Bouncer" at the door of your database. It ensures that only "good" data gets in. This prevents your app from crashing due to empty rows or invalid formats (like a fake email address).
 
 ---
 
 ## 🎯 Challenge
-Can you display the logged-in username in the navigation bar? 
-*Hint: Use `$_SESSION['username']` if you store it during login.*
+Can you add a `min()` method to your `Validator` that checks if a post's content is at least 10 characters long?

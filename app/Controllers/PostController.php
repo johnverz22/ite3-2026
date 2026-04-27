@@ -2,6 +2,7 @@
 namespace App\Controllers;
 
 use App\Models\Post;
+use App\Helpers\Validator;
 
 class PostController extends Controller {
 
@@ -29,13 +30,24 @@ class PostController extends Controller {
 
     public function store() {
         $this->checkAuth();
+        
         $title = $_POST['title'] ?? '';
         $content = $_POST['content'] ?? '';
 
-        if (!empty($title) && !empty($content)) {
-            $postModel = new Post();
-            $postModel->create($title, $content);
+        // Validate
+        Validator::clearErrors();
+        Validator::required($title, 'title');
+        Validator::required($content, 'content');
+
+        if (Validator::hasErrors()) {
+            return $this->render('post-create', [
+                'errors' => Validator::getErrors(),
+                'old' => $_POST // Keep old values
+            ]);
         }
+
+        $postModel = new Post();
+        $postModel->create($title, $content);
 
         header('Location: /ite3/home');
         exit;
@@ -58,14 +70,27 @@ class PostController extends Controller {
 
     public function update() {
         $this->checkAuth();
+        
         $id = $_POST['id'] ?? null;
         $title = $_POST['title'] ?? '';
         $content = $_POST['content'] ?? '';
 
-        if ($id && !empty($title) && !empty($content)) {
+        // Validate
+        Validator::clearErrors();
+        Validator::required($title, 'title');
+        Validator::required($content, 'content');
+
+        if (Validator::hasErrors()) {
             $postModel = new Post();
-            $postModel->update($id, $title, $content);
+            $post = $postModel->find($id);
+            return $this->render('post-edit', [
+                'post' => $post,
+                'errors' => Validator::getErrors()
+            ]);
         }
+
+        $postModel = new Post();
+        $postModel->update($id, $title, $content);
 
         header('Location: /ite3/home');
         exit;

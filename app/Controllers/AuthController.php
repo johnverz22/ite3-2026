@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\User;
+use App\Helpers\Validator;
 
 class AuthController extends Controller {
     protected $userModel;
@@ -21,6 +22,17 @@ class AuthController extends Controller {
         $username = $_POST['username'] ?? '';
         $password = $_POST['password'] ?? '';
 
+        // Validate
+        Validator::clearErrors();
+        Validator::required($username, 'username');
+        Validator::required($password, 'password');
+
+        if (Validator::hasErrors()) {
+            return $this->render('login', [
+                'errors' => Validator::getErrors()
+            ]);
+        }
+
         $user = $this->userModel->findByUsername($username);
 
         if ($user && password_verify($password, $user['password'])) {
@@ -32,7 +44,9 @@ class AuthController extends Controller {
         }
 
         // Failed login
-        echo "Invalid username or password! <a href='/ite3/login'>Try again</a>";
+        return $this->render('login', [
+            'errors' => ['auth' => 'Invalid username or password!']
+        ]);
     }
 
     // Logout the user

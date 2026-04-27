@@ -1,10 +1,7 @@
 <h1>Welcome to the Blog</h1>
-<p>This content is being loaded from the database!</p>
+<p>Modernized UI with external assets.</p>
 
-<a href="/ite3/post/create">Add New Post</a>
-
-<hr>
-
+<div style="margin-top: 2rem;">
 <?php if (empty($posts)): ?>
     <p>No posts found.</p>
 <?php else: ?>
@@ -14,11 +11,13 @@
                 <strong><?= htmlspecialchars($post['title']) ?></strong>
                 <p><?= htmlspecialchars($post['content']) ?></p>
                 <small>Posted on: <?= $post['created_at'] ?></small>
-                <br>
-                <a href="/ite3/post/edit/<?= $post['id'] ?>">Edit</a> | 
-                <a href="/ite3/post/delete/<?= $post['id'] ?>" onclick="return confirm('Are you sure?')">Delete</a>
+                
+                <div class="actions">
+                    <a href="/ite3/post/edit/<?= $post['id'] ?>">Edit</a>
+                    <a href="/ite3/post/delete/<?= $post['id'] ?>" class="delete" onclick="return confirm('Are you sure?')">Delete</a>
+                </div>
             </li>
-            <hr>
         <?php endforeach; ?>
     </ul>
 <?php endif; ?>
+</div>

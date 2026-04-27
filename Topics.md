@@ -9,7 +9,9 @@
 *   **2.1 The Router Class:** Mapping URLs and HTTP Methods to Controller actions. (Updated to support dynamic {id} parameters) ✅
 *   **2.2 Base Controllers:** Creating the first Controller classes to handle user requests. ✅
 *   **2.3 The View Engine:** Moving from `echo "HTML"` to loading real templates with Output Buffering. ✅
-*   **2.4 Tailwind CSS Integration:** Setting up the UI framework for a professional look. (Pending ⏳)
+*   **2.4 Static Assets (CSS & JS):** Organizing and linking external styles and scripts from the `public/` folder. ✅
+*   **2.5 Responsive Layout:** Building mobile-friendly designs using Vanilla CSS Flexbox and Media Queries. ✅
+*   **2.6 Tailwind CSS Integration:** Setting up the UI framework for a professional look. (Pending ⏳)
 
 ## Phase 3: The Data Layer (The "Model") (Completed ✅)
 *   **3.1 Database Wrapper:** Creating a secure PDO connection class. ✅

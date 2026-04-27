@@ -1,51 +1,36 @@
-# 🎮 Phase 4: Controllers & View Engines (Refactoring and Forms)
+# 🎨 Phase 7: Assets & Responsive UI
 
-In this phase, we clean up our logic by introducing a **Base Controller** and implement **Form Handling** to create new data.
+In this phase, we transform our basic HTML structure into a modern, professional, and mobile-friendly web application by introducing external assets and responsive design principles.
 
-## 1. The Base Controller (`app/Controllers/Controller.php`)
-As our app grows, every controller will need a `render()` method. Instead of copying and pasting it into every controller, we move it to a "Parent" class.
-* **Inheritance:** `PostController extends Controller`.
-* **DRY (Don't Repeat Yourself):** We write the logic once, and every controller gets it for free.
+## 1. Separation of Concerns (External Assets)
+Previously, our styles were trapped inside `<style>` tags in our PHP files. By moving them to `public/css/style.css` and `public/js/app.js`, we achieve:
+- **Cached Loading:** The browser saves these files so they don't have to be downloaded every time the user clicks a link.
+- **Organization:** It’s easier to manage 500 lines of CSS in a dedicated `.css` file than inside a PHP template.
+- **Cleaner Views:** Our PHP files now focus purely on data and structure.
 
-## 2. Dynamic Views
-We are no longer using "Lorem Ipsum" or fake data.
-* **Fetching:** The Controller asks the Model for database rows.
-* **Looping:** In `home.php`, we use a `foreach` loop to display every post found in the database.
-* **Security:** We use `htmlspecialchars()` to prevent **XSS (Cross-Site Scripting)** attacks.
+## 2. Responsive Design (Media Queries)
+The web isn't just for desktops. We use **Media Queries** to detect the user's screen size and adjust the layout accordingly.
+```css
+/* Tablet and Mobile adjustments */
+@media (max-width: 768px) {
+    .container { padding: 10px; }
+    nav { 
+        flex-direction: column; 
+        gap: 1rem;
+    }
+}
+```
 
-## 3. Handling POST Requests
-To add new data, we move from `GET` (viewing) to `POST` (sending).
-* **The Route:** We added `$router->post('post/store', ...)` to handle form submissions.
-* **The Model:** Added a `create()` method that uses a **Prepared Statement** to safely insert data.
-* **The Redirect:** After saving, we use `header('Location: ...')` to send the user back to the homepage. This prevents the "Form Resubmission" error if the user refreshes the page.
-
----
-
-## 🛠️ Student Checklist: Form Implementation
-1.  **Refactor:** Move your `render` method to `app/Controllers/Controller.php`.
-2.  **Update View:** In `home.php`, replace your static list with a `foreach` loop.
-3.  **Create Form:** In `post-create.php`, ensure your `<form>` tag has `method="POST"` and `action="/ite3/post/store"`.
-4.  **Test:** Try adding a post! If it doesn't show up, check your SQL `INSERT` statement in the `Post` model.
-
----
-
-## ⚠️ Common Troubleshooting
-* **Undefined Variable $posts:** Ensure you are passing `'posts' => $posts` in your controller's `render()` method.
-* **404 on Store:** Did you register the route in `index.php` using `$router->post` instead of `$router->get`?
-* **Empty Database:** If you haven't run the SQL from Phase 3, you won't see anything on the home page.
+## 3. The Asset Pipeline
+In our CMS, the `public/` folder is the ONLY folder accessible to the world. 
+- All CSS, JS, and Images MUST live inside `public/`.
+- We link them in our `layouts/main.php` using absolute paths (e.g., `/ite3/css/style.css`) so every page automatically gets the same look and feel.
 
 ---
 
-# 🛣️ Phase 5: Routing Refactor
-
-We moved our routes out of `public/index.php` and into `app/routes.php`.
-
-## Why Separate Routes?
-*   **Cleaner index.php:** Your entry point should only handle bootstrapping (loading the app).
-*   **The Switchboard Pattern:** `app/routes.php` acts as a clear map of every URL your site supports. It’s easier for multiple developers to work on the same project when the routes are in one dedicated file.
-
-## Current Registered Routes:
-1.  `GET /home` -> Home Page (Lists all posts)
-2.  `GET /post/create` -> The Post Creation Form
-3.  `POST /post/store` -> Logic that saves the post to the DB
-
+## 🛠️ Student Checklist: UI Modernization
+1.  **Directory Setup:** Create `public/css/` and `public/js/` folders.
+2.  **Asset Migration:** Move your CSS from `main.php` to `style.css`.
+3.  **External Linking:** Link both `style.css` and `app.js` in your `main.php` layout.
+4.  **Responsive Layout:** Use Flexbox (`display: flex`) for your navigation bar and ensure it stacks on mobile.
+5.  **Testing:** Shrink your browser window. Does the content still look good?

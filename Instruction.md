@@ -1,60 +1,51 @@
-# 🚀 Phase 10: The Service Layer
+# 🚀 Phase 11: Composer & Environment Variables
 
-In this phase, we are taking our "MVC" architecture to a professional level by introducing a **Service Layer**. This is where the complex "Business Logic" lives.
-
----
-
-## 1. What is a Service?
-While the **Controller** handles the request and the **Model** handles the database, the **Service** handles the "Work." 
-
-**Example: Slug Generation**
-A blog post needs a URL-friendly name (e.g., `my-post-title`). Generating this involves:
-1. Converting to lowercase.
-2. Replacing spaces with hyphens.
-3. Removing special characters.
-
-Instead of putting this logic in the Controller, we put it in `app/Services/PostService.php`.
+In this phase, we move from manual setups to professional industry standards using **Composer** and **Dotenv**.
 
 ---
 
-## 2. Database Update
-You need to add a `slug` column to your `posts` table.
+## 1. Introducing Composer
+Composer is the "App Store" for PHP libraries. Instead of writing everything from scratch, we can use libraries built by the community.
 
-**Run this SQL:**
-```sql
-ALTER TABLE posts ADD COLUMN slug VARCHAR(255) NOT NULL UNIQUE AFTER title;
+**Key Files:**
+- `composer.json`: The "Shopping List" of your project.
+- `vendor/`: The folder where all external libraries live.
+
+**Command to run:**
+```powershell
+composer install
 ```
 
 ---
 
-## 3. Implementing the Service (`app/Services/PostService.php`)
-```php
-namespace App\Services;
+## 2. Environment Variables (`.env`)
+Never hardcode your database passwords! We use a `.env` file to store settings that change depending on where the app is running.
 
-class PostService {
-    public static function generateSlug($title) {
-        $slug = strtolower(trim($title));
-        $slug = preg_replace('/[^a-z0-9-]+/', '-', $slug);
-        return trim($slug, '-');
-    }
-}
-```
+**New logic:**
+1. Create a `.env` file (see `.env.example`).
+2. Use `$_ENV['DB_PASS']` in your code instead of writing it directly.
+
+---
+
+## 3. Fixing the "Directory Listing" Issue
+We've added a root `index.php`. Now, when you visit `localhost/ite3`, it will automatically redirect you to the `public/` folder where our real app lives.
 
 ---
 
 ## 🛠️ Student Checklist
-*   [ ] Run the SQL to add the `slug` column.
-*   [ ] Create the `app/Services/PostService.php` file.
-*   [ ] Update `app/Models/Post.php` to save the `slug` in the database.
-*   [ ] Refactor `PostController.php` to use the `PostService` before calling the model.
-*   [ ] Display the slug on the `home.php` page next to the title.
+*   [ ] Verify you have **Composer** installed (`composer --version`).
+*   [ ] Run `composer install` in your project root.
+*   [ ] Create your own `.env` file by copying `.env.example`.
+*   [ ] Update your `public/index.php` to use the `vendor/autoload.php`.
+*   [ ] Check that your `.env` variables are being loaded correctly.
+*   [ ] **CRITICAL:** Ensure `.env` is listed in your `.gitignore` so you don't leak passwords to GitHub!
 
 ---
 
-## 🧠 Key Concept: Thin Controllers, Fat Services
-We want our **Controllers** to be "Thin"—they should only coordinate between the view, the service, and the model. The **Services** can be "Fat"—they handle the heavy lifting and complex calculations. This makes your code easier to test and maintain!
+## 🧠 Key Concept: Portability
+By using `.env` and Composer, your project is now "Portable." Another developer can download your code, run `composer install`, create their own `.env`, and the app will work perfectly on their machine without changing a single line of your PHP code!
 
 ---
 
 ## 🎯 Challenge
-Can you update the `PostService` to ensure that slugs are unique? (e.g., if `my-post` already exists, name the new one `my-post-1`).
+Can you add a custom variable to your `.env` called `APP_MAINTENANCE=false` and use it in `index.php` to show a "Coming Soon" message if it is set to `true`?

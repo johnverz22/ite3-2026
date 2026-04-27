@@ -1,19 +1,17 @@
 <?php
 session_start();
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// 1. Load Composer Autoloader
+require_once __DIR__ . '/../vendor/autoload.php';
 
-// PSR-4 Style Autoloader
-spl_autoload_register(function ($class) {
-    $prefix = 'App\\';
-    $base_dir = __DIR__ . '/../app/';
-    $len = strlen($prefix);
-    if (strncmp($prefix, $class, $len) !== 0) return;
-    $relative_class = substr($class, $len);
-    $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
-    if (file_exists($file)) require $file;
-});
+// 2. Load Environment Variables
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
+
+error_reporting(E_ALL);
+if ($_ENV['APP_DEBUG'] === 'true') {
+    ini_set('display_errors', 1);
+}
 
 use App\Core\Router;
 
@@ -25,7 +23,11 @@ require __DIR__ . '/../app/routes.php';
 
 // 3. Capture the current request
 $uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
-$uri = str_replace('ite3/', '', $uri);
+$basePath = trim($_ENV['APP_BASE_PATH'] ?? '', '/');
+if (!empty($basePath)) {
+    $uri = preg_replace("#^" . preg_quote($basePath) . "/?#", '', $uri);
+}
+
 if ($uri === '' || $uri === 'index.php') { $uri = 'home'; }
 
 $method = $_SERVER['REQUEST_METHOD'];

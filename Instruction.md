@@ -10,7 +10,7 @@ We need to store a URL-friendly "Slug" for each post. Run this SQL in your datab
 ```sql
 ALTER TABLE posts ADD COLUMN slug VARCHAR(255) NOT NULL UNIQUE AFTER title;
 ```
-
+**Note:** If this will generate error, make sure to truncate or empty your post table first then re-run again.
 ---
 
 ## 🛠️ Step 2: Creating the Service (`app/Services/PostService.php`)

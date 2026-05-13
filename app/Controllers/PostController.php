@@ -111,4 +111,18 @@ class PostController extends Controller {
         header('Location: /ite3/home');
         exit;
     }
+
+    public function show($slug) {
+        $postModel = new Post();
+        $post = $postModel->findBySlug($slug);
+
+        if (!$post) {
+            echo "Post not found!";
+            return;
+        }
+
+        $this->render('post-show', [
+            'post' => $post
+        ]);
+    }
 }

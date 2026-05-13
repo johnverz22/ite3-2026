@@ -8,8 +8,16 @@
     <ul>
         <?php foreach ($posts as $post): ?>
             <li>
-                <strong><?= htmlspecialchars($post['title']) ?></strong>
-                <small style="color: var(--primary);">/<?= htmlspecialchars($post['slug']) ?></small>
+                <strong>
+                    <a href="/ite3/post/<?= htmlspecialchars($post['slug']) ?>" style="text-decoration: none; color: inherit;">
+                        <?= htmlspecialchars($post['title']) ?>
+                    </a>
+                </strong>
+                <small style="color: var(--primary);">
+                    <a href="/ite3/post/<?= htmlspecialchars($post['slug']) ?>" style="text-decoration: none; color: inherit;">
+                        /<?= htmlspecialchars($post['slug']) ?>
+                    </a>
+                </small>
                 <p><?= htmlspecialchars($post['content']) ?></p>
                 <small>Posted on: <?= $post['created_at'] ?></small>
                 

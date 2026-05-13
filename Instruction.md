@@ -56,11 +56,88 @@ $postModel->create($title, $slug, $content);
 ---
 
 ## 🛠️ Step 5: View Update (`app/Views/home.php`)
-Show the generated slug next to your post titles so you can verify it's working!
+Make the post title and slug clickable links that point to the single post view using the slug!
 
 ```html
-<strong><?= $post['title'] ?></strong>
-<small>/<?= $post['slug'] ?></small>
+<strong>
+    <a href="/ite3/post/<?= htmlspecialchars($post['slug']) ?>">
+        <?= htmlspecialchars($post['title']) ?>
+    </a>
+</strong>
+<small>
+    <a href="/ite3/post/<?= htmlspecialchars($post['slug']) ?>">
+        /<?= htmlspecialchars($post['slug']) ?>
+    </a>
+</small>
+```
+
+---
+
+## 🛠️ Step 6: Core Router Update (`app/Core/Router.php`)
+To allow the router to accept slugs with hyphens (`-`), update the regular expression in the `resolve` method of the `Router` class.
+
+```php
+// Convert route pattern {id} to regex
+$pattern = preg_replace('/\{[a-zA-Z0-9_]+\}/', '([a-zA-Z0-9_-]+)', $route);
+```
+
+---
+
+## 🛠️ Step 7: Adding the Route and Controller Method (`routes.php` & `PostController.php`)
+Add a new route to handle the slug and a new method in your controller to fetch the post by its slug.
+
+**In `routes.php`:**
+```php
+$router->get('post/{slug}', 'PostController@show');
+```
+
+**In `PostController.php`:**
+```php
+public function show($slug) {
+    $postModel = new Post();
+    $post = $postModel->findBySlug($slug);
+
+    if (!$post) {
+        echo "Post not found!";
+        return;
+    }
+
+    $this->render('post-show', [
+        'post' => $post
+    ]);
+}
+```
+
+---
+
+## 🛠️ Step 8: Update Model (`app/Models/Post.php`)
+Add a method to your model to fetch a post by its slug.
+
+```php
+public function findBySlug($slug) {
+    $stmt = $this->db->prepare("SELECT * FROM posts WHERE slug = ?");
+    $stmt->execute([$slug]);
+    return $stmt->fetch();
+}
+```
+
+---
+
+## 🛠️ Step 9: Create Single Post View (`app/Views/post-show.php`)
+Create a new view file to display the single post data.
+
+```php
+<h1><?= htmlspecialchars($post['title']) ?></h1>
+<p style="color: var(--primary);">Slug: <?= htmlspecialchars($post['slug']) ?></p>
+
+<div style="margin-top: 2rem; margin-bottom: 2rem;">
+    <p><?= nl2br(htmlspecialchars($post['content'])) ?></p>
+</div>
+
+<small>Posted on: <?= $post['created_at'] ?></small>
+
+<hr>
+<a href="/ite3/home">Back to Home</a>
 ```
 
 ---

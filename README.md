@@ -14,9 +14,11 @@ We no longer just store a title and content. Every post now has a **Slug** (a UR
 - **Consistency:** By centralizing this logic in a Service, we ensure that slugs are always formatted the same way across the entire site.
 
 ## 3. The Refactoring Flow
-1. **Model:** We update the `Post` model to accept a `slug` parameter in `create()` and `update()`.
+1. **Model:** We update the `Post` model to accept a `slug` parameter in `create()` and `update()`, and add a `findBySlug()` method.
 2. **Service:** We create `PostService::generateSlug()` to handle the string manipulation.
-3. **Controller:** We call the service in the `store()` method to get the slug before passing it to the model.
+3. **Controller:** We call the service in the `store()` method to get the slug before passing it to the model. We also add a `show($slug)` method to view a specific post.
+4. **Router:** We update the Core Router's regex to allow for hyphens inside URLs, and add a GET route for `post/{slug}`.
+5. **View:** We link post titles/slugs from the list view directly to a new `post-show.php` view.
 
 ---
 
